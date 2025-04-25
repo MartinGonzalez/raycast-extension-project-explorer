@@ -65,12 +65,12 @@ export default function Command() {
               />
               <Action
                 title={`Open with ${getAppName(preferences.textEditorApp)}`}
-                icon={{ source: "../assets/AppIcon.iconset/icon_256x256.png" }}
+                icon={{ fileIcon: getAppPath(preferences.textEditorApp) }}
                 onAction={() => openWithApp(getAppPath(preferences.textEditorApp), project.path)}
               />
               <Action
                 title={`Open with ${getAppName(preferences.terminalApp)}`}
-                icon={Icon.Terminal}
+                icon={{ fileIcon: getAppPath(preferences.terminalApp) }}
                 onAction={() => openWithApp(getAppPath(preferences.terminalApp), project.path)}
               />
             </ActionPanel>
