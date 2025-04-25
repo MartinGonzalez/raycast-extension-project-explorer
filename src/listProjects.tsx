@@ -1,14 +1,26 @@
-import { List, ActionPanel, Action, getPreferenceValues, open, showHUD, Clipboard, Color, closeMainWindow } from '@raycast/api';
+import { List, ActionPanel, Action, getPreferenceValues, open, showHUD, Clipboard, Color, closeMainWindow, Icon } from '@raycast/api';
+import { showFailureToast } from '@raycast/utils';
 import { useState, useEffect } from 'react';
 import { CommandFactory } from './infrastructure/factories/commandFactory';
 import { Project } from './core/models/project';
+import path from 'path';
 
+function getAppPath(appToOpen: any): string {
+  // Handles both string and object forms from Raycast App Picker
+  if (typeof appToOpen === 'string') return appToOpen;
+  if (typeof appToOpen === 'object' && appToOpen?.path) return appToOpen.path;
+  return '';
+}
 
+function getAppName(appToOpen: any): string {
+  const appPath = getAppPath(appToOpen);
+  return path.basename(appPath, path.extname(appPath));
+}
 
 export default function Command() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const preferences = getPreferenceValues<{ projectsPath: string }>();
+  const preferences = getPreferenceValues<{ projectsPath: string; textEditorApp: string; terminalApp: string }>();
 
   useEffect(() => {
     async function fetchProjects() {
@@ -52,9 +64,14 @@ export default function Command() {
                 onAction={() => copyPath(project.path)}
               />
               <Action
-                title="Open with Windsurf"
+                title={`Open with ${getAppName(preferences.textEditorApp)}`}
                 icon={{ source: "../assets/AppIcon.iconset/icon_256x256.png" }}
-                onAction={() => openWithWindsurf(project.path)}
+                onAction={() => openWithApp(getAppPath(preferences.textEditorApp), project.path)}
+              />
+              <Action
+                title={`Open with ${getAppName(preferences.terminalApp)}`}
+                icon={Icon.Terminal}
+                onAction={() => openWithApp(getAppPath(preferences.terminalApp), project.path)}
               />
             </ActionPanel>
           }
@@ -74,11 +91,15 @@ async function copyPath(filePath: string) {
   await showHUD("Path copied to clipboard");
 }
 
-async function openWithWindsurf(projectPath: string) {
+async function openWithApp(appPath: string, projectPath: string) {
   const { exec } = await import("child_process");
-  exec(`/Users/martingonzalez/.codeium/windsurf/bin/windsurf "${projectPath}"`, (error) => {
+  const isAppBundle = appPath.endsWith(".app");
+  const command = isAppBundle
+    ? `open -a "${appPath}" "${projectPath}"`
+    : `${appPath} "${projectPath}"`;
+  exec(command, (error) => {
     if (error) {
-      showHUD("Failed to open with Windsurf");
+      showFailureToast("Failed to open project");
     } else {
       closeMainWindow();
     }
