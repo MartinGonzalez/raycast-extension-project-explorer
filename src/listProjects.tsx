@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, getPreferenceValues, open, showHUD, Clipboard, Color, closeMainWindow, Icon } from '@raycast/api';
+import { List, ActionPanel, Action, getPreferenceValues, open, showHUD, Clipboard, Color, closeMainWindow, showInFinder } from '@raycast/api';
 import { showFailureToast } from '@raycast/utils';
 import { useState, useEffect } from 'react';
 import { CommandFactory } from './infrastructure/factories/commandFactory';
@@ -57,7 +57,7 @@ export default function Command() {
             <ActionPanel>
               <Action
                 title="Open in Finder"
-                onAction={() => openInFinder(project.path)}
+                onAction={async() => await showInFinder(project.path)}
               />
               <Action
                 title="Copy Path"
@@ -79,11 +79,6 @@ export default function Command() {
       ))}
     </List>
   );
-}
-
-async function openInFinder(filePath: string) {
-  await open(filePath);
-  await showHUD("Opened in Finder");
 }
 
 async function copyPath(filePath: string) {
